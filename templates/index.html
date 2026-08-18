@@ -5,251 +5,358 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>造数平台</title>
 <style>
+:root {
+  --primary: #0E66FB; --primary-hover: #036DDE; --primary-light: #EEF2FF; --primary-border: #9DB8FD;
+  --success: #52C41A; --success-text: #389E0D; --success-bg: #F6FFED;
+  --warning: #FAAD14; --warning-text: #D48806; --warning-bg: #FFFBE6;
+  --error: #FF4D4F; --error-text: #CF1322; --error-bg: #FFF1F0;
+  --processing: #1677FF;
+  --text: #1F2329; --text-secondary: #4E5969; --text-tertiary: #86909C;
+  --border: #E5E6EB; --divider: #F2F3F5; --bg-page: #F5F6F7;
+}
 * { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
-  background: #f0f2f5;
-  color: #333;
-  min-height: 100vh;
-}
-.header {
-  background: linear-gradient(135deg, #1a73e8, #1557b0);
-  color: #fff;
-  padding: 16px 28px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,.15);
-}
-.header h1 { font-size: 20px; font-weight: 600; }
-.header .badge { background: rgba(255,255,255,.2); padding: 2px 10px; border-radius: 10px; font-size: 12px; }
-
-.container { max-width: 1200px; margin: 20px auto; padding: 0 16px; }
-
-.card {
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 1px 4px rgba(0,0,0,.08);
-  padding: 20px;
-  margin-bottom: 16px;
-}
-.card-title {
-  font-size: 15px;
-  font-weight: 600;
-  margin-bottom: 14px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #eee;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-/* Form */
-.form-row { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 12px; }
-.form-group { display: flex; flex-direction: column; gap: 4px; }
-.form-group label { font-size: 13px; color: #666; font-weight: 500; }
-.form-group select, .form-group input {
-  padding: 8px 12px;
-  border: 1px solid #d0d5dd;
-  border-radius: 6px;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei",
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: var(--bg-page);
+  color: var(--text);
   font-size: 14px;
-  outline: none;
-  transition: border-color .2s;
+  line-height: 22px;
 }
-.form-group select:focus, .form-group input:focus { border-color: #1a73e8; box-shadow: 0 0 0 3px rgba(26,115,232,.12); }
-.form-group select { min-width: 280px; }
-.form-group input { width: 100px; }
-.label-hint { color:#888; font-weight:400; font-size:11px; white-space: nowrap; }
+.hidden { display: none !important; }
 
-/* 生成参数行：行数 + 种子固定一行，与模板选择分开展示 */
-.gen-row { 
-  flex-wrap: nowrap;
-  align-items: flex-end;
-  background: #f8fafd;
-  border: 1px solid #eef1f6;
-  border-radius: 8px;
-  padding: 10px 14px;
-  margin-bottom: 0;
+/* ============ 布局骨架：侧边菜单 224px + 顶部栏 56px ============ */
+.layout { display: flex; min-height: 100vh; }
+.sider {
+  width: 224px; flex: 0 0 224px; background: #fff;
+  border-right: 1px solid var(--divider);
+  position: fixed; top: 0; bottom: 0; left: 0; overflow-y: auto; z-index: 60;
 }
-.gen-row .form-group label { white-space: nowrap; margin-bottom: 1px; }
-.gen-hint { font-size:11px; color:#9aa4b1; margin-left:auto; padding-bottom:9px; }
-
-.btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 8px 18px;
-  border: none; border-radius: 6px;
-  font-size: 14px; font-weight: 500;
-  cursor: pointer;
+.logo { height: 56px; display: flex; align-items: center; gap: 10px; padding: 0 16px; border-bottom: 1px solid var(--divider); }
+.logo-icon { font-size: 22px; }
+.logo-title { font-size: 16px; font-weight: 600; color: var(--text); line-height: 20px; }
+.logo-sub { font-size: 11px; color: var(--text-tertiary); line-height: 14px; }
+.menu-group { padding: 16px 20px 6px; font-size: 12px; color: var(--text-tertiary); }
+.menu-item {
+  display: flex; align-items: center; gap: 8px; height: 40px;
+  margin: 2px 8px; padding: 0 12px; border-radius: 4px;
+  color: var(--text-secondary); text-decoration: none; font-size: 14px;
   transition: all .2s;
 }
-.btn:disabled { opacity: .5; cursor: not-allowed; }
-.btn-primary { background: #1a73e8; color: #fff; }
-.btn-primary:hover:not(:disabled) { background: #1557b0; }
-.btn-success { background: #0d9e6c; color: #fff; }
-.btn-success:hover:not(:disabled) { background: #0b7d55; }
-.btn-outline { background: #fff; color: #1a73e8; border: 1px solid #1a73e8; }
-.btn-outline:hover:not(:disabled) { background: #e8f0fe; }
-.btn-sm { padding: 5px 12px; font-size: 12px; }
+.menu-item:hover { background: var(--divider); color: var(--text); }
+.menu-item.active { background: var(--primary-light); color: var(--primary); font-weight: 500; }
 
-/* Fixed values section */
-.fv-row { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
-.fv-row select { width: 200px; padding: 6px 10px; border: 1px solid #d0d5dd; border-radius: 6px; font-size: 13px; }
-.fv-row input { width: 180px; padding: 6px 10px; border: 1px solid #d0d5dd; border-radius: 6px; font-size: 13px; }
-.fv-row .btn-remove { color: #e74c3c; cursor: pointer; border: none; background: none; font-size: 16px; }
+.main { flex: 1; margin-left: 224px; min-width: 0; display: flex; flex-direction: column; }
+.topbar {
+  height: 56px; background: #fff; border-bottom: 1px solid var(--divider);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 20px; position: sticky; top: 0; z-index: 50;
+}
+.breadcrumb { font-size: 12px; color: var(--text-tertiary); }
+.breadcrumb .cur { color: var(--text); }
+.topbar-status { display: flex; align-items: center; gap: 8px; }
 
-/* Table */
-.table-wrap { overflow-x: auto; max-height: 500px; overflow-y: auto; border: 1px solid #e8e8e8; border-radius: 6px; }
-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-th { background: #f7f8fa; padding: 8px 10px; text-align: left; font-weight: 600; border-bottom: 2px solid #e8e8e8; white-space: nowrap; position: sticky; top: 0; z-index: 1; }
-td { padding: 7px 10px; border-bottom: 1px solid #f0f0f0; white-space: nowrap; max-width: 200px; overflow: hidden; text-overflow: ellipsis; }
-tr:hover td { background: #fafbff; }
+.content { flex: 1; padding: 16px 20px 24px; width: 100%; max-width: 1280px; margin: 0 auto; }
+.page-head { margin-bottom: 16px; }
+.page-head h1 { font-size: 20px; font-weight: 600; line-height: 28px; }
+.page-head p { font-size: 12px; color: var(--text-tertiary); margin-top: 4px; }
+.page-foot { text-align: center; font-size: 12px; color: var(--text-tertiary); padding: 8px 0 4px; }
+
+section { scroll-margin-top: 72px; }
+
+/* ============ 卡片 ============ */
+.card {
+  background: #fff; border: 1px solid var(--border); border-radius: 8px;
+  padding: 20px 24px; margin-bottom: 16px;
+}
+.card-title {
+  font-size: 16px; font-weight: 600; line-height: 24px;
+  margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--divider);
+  display: flex; align-items: center; gap: 8px;
+}
+.card-title .sub { font-size: 12px; font-weight: 400; color: var(--text-tertiary); }
+
+/* ============ 表单 ============ */
+.form-row { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 16px; }
+.form-row:last-child { margin-bottom: 0; }
+.form-group { display: flex; flex-direction: column; gap: 4px; }
+.form-group label { font-size: 14px; font-weight: 500; color: var(--text-secondary); }
+.label-hint { color: var(--text-tertiary); font-weight: 400; font-size: 12px; white-space: nowrap; }
+.form-group select, .form-group input, .form-group textarea {
+  height: 32px; padding: 4px 10px;
+  border: 1px solid var(--border); border-radius: 4px;
+  font-size: 14px; font-family: inherit; color: var(--text); background: #fff;
+  outline: none; transition: border-color .2s, box-shadow .2s;
+}
+.form-group textarea { height: auto; padding: 6px 10px; }
+.form-group select:focus, .form-group input:focus, .form-group textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(14,102,251,.12);
+}
+.form-group select { min-width: 280px; }
+.form-group input { width: 100px; }
+
+/* 生成参数行：行数 + 种子固定一行，与模板选择分开展示 */
+.gen-row {
+  flex-wrap: nowrap; align-items: flex-end;
+  background: var(--bg-page); border: 1px solid var(--divider);
+  border-radius: 4px; padding: 12px 14px; margin-bottom: 0;
+}
+.gen-row .form-group label { white-space: nowrap; margin-bottom: 1px; }
+.gen-hint { font-size: 12px; color: var(--text-tertiary); margin-left: auto; padding-bottom: 9px; }
+
+/* ============ 按钮 ============ */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 32px; padding: 0 14px;
+  border: 1px solid transparent; border-radius: 4px;
+  font-size: 14px; font-family: inherit; cursor: pointer;
+  transition: all .2s; white-space: nowrap;
+}
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover:not(:disabled) { background: var(--primary-hover); }
+.btn-default { background: #fff; border-color: var(--border); color: var(--text); }
+.btn-default:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
+.btn-text { background: none; border: none; color: var(--text-secondary); }
+.btn-text:hover:not(:disabled) { color: var(--primary); background: var(--primary-light); }
+.btn-sm { height: 24px; padding: 0 8px; font-size: 12px; }
+.btn:disabled { background: var(--divider); color: #C9CDD4; border-color: transparent; cursor: not-allowed; }
+
+.btn-group { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+
+/* ============ 状态标签 ============ */
+.tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  height: 24px; padding: 0 8px; border-radius: 4px;
+  font-size: 12px; line-height: 1; border: 1px solid transparent; white-space: nowrap;
+}
+.tag-success { color: var(--success-text); background: var(--success-bg); border-color: #B7EB8F; }
+.tag-warning { color: var(--warning-text); background: var(--warning-bg); border-color: #FFE58F; }
+.tag-error { color: var(--error-text); background: var(--error-bg); border-color: #FFA39E; }
+.tag-default { color: var(--text-secondary); background: var(--divider); border-color: var(--divider); }
+
+/* ============ 固定列值 ============ */
+.fv-block { margin-top: 16px; }
+.fv-title { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 14px; font-weight: 500; color: var(--text-secondary); }
+.fv-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+.fv-row select { width: 240px; height: 32px; padding: 4px 10px; border: 1px solid var(--border); border-radius: 4px; font-size: 14px; font-family: inherit; color: var(--text); }
+.fv-row input { width: 200px; height: 32px; padding: 4px 10px; border: 1px solid var(--border); border-radius: 4px; font-size: 14px; font-family: inherit; }
+.fv-row .btn-remove { color: var(--error-text); cursor: pointer; border: none; background: none; font-size: 16px; padding: 0 4px; }
+.fv-row .btn-remove:hover { color: var(--error); }
+
+/* ============ 表格 ============ */
+.table-wrap {
+  overflow: auto; max-height: 520px;
+  border: 1px solid var(--border); border-radius: 4px;
+}
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th {
+  background: var(--divider); color: var(--text);
+  padding: 10px 12px; text-align: left; font-weight: 500;
+  border-bottom: 1px solid var(--border); white-space: nowrap;
+  position: sticky; top: 0; z-index: 1;
+}
+td {
+  padding: 8px 12px; border-bottom: 1px solid var(--divider);
+  white-space: nowrap; max-width: 200px; overflow: hidden; text-overflow: ellipsis;
+}
+tr:hover td { background: var(--bg-page); }
 .num { text-align: right; font-variant-numeric: tabular-nums; }
 
-/* Toast */
+/* ============ Toast ============ */
 .toast {
-  position: fixed; top: 20px; right: 20px; z-index: 9999;
-  padding: 12px 20px; border-radius: 8px; color: #fff;
-  font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,.2);
-  animation: slideIn .3s ease;
-  max-width: 450px;
+  position: fixed; top: 16px; right: 20px; z-index: 9999;
+  padding: 10px 16px; border-radius: 8px; background: #fff;
+  border: 1px solid var(--border); border-left: 3px solid var(--primary);
+  font-size: 14px; color: var(--text);
+  box-shadow: 0 6px 16px rgba(0,0,0,.08);
+  animation: slideIn .3s ease; max-width: 450px;
 }
-.toast-success { background: #0d9e6c; }
-.toast-error { background: #e74c3c; }
-.toast-info { background: #1a73e8; }
+.toast-success { border-left-color: var(--success); }
+.toast-error { border-left-color: var(--error); }
+.toast-info { border-left-color: var(--primary); }
 @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-/* API Config Modal */
+/* ============ 状态栏 ============ */
+.status-bar {
+  display: flex; flex-wrap: wrap; gap: 16px; align-items: center;
+  font-size: 12px; color: var(--text-tertiary); margin-top: 12px;
+}
+.status-bar span { display: flex; align-items: center; gap: 4px; }
+.status-bar code {
+  font-size: 11px; background: var(--divider); padding: 1px 6px;
+  border-radius: 4px; font-family: Consolas, Monaco, monospace;
+}
+
+/* ============ 弹窗 ============ */
 .modal-overlay {
   position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,.3); z-index: 100;
+  background: rgba(0,0,0,.45); z-index: 100;
   display: flex; align-items: center; justify-content: center;
 }
 .modal {
-  background: #fff; border-radius: 12px; padding: 24px;
-  width: 520px; max-height: 80vh; overflow-y: auto;
-  box-shadow: 0 8px 30px rgba(0,0,0,.2);
+  background: #fff; border-radius: 8px; padding: 24px;
+  width: 640px; max-width: 92vw; max-height: 85vh; overflow-y: auto;
+  box-shadow: 0 8px 30px rgba(0,0,0,.16);
 }
-.modal h3 { margin-bottom: 16px; }
+.modal h3 { font-size: 16px; font-weight: 600; line-height: 24px; margin-bottom: 16px; }
 .modal .form-group { margin-bottom: 12px; }
 .modal .form-group input { width: 100%; }
-.modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; }
-
-.hidden { display: none !important; }
-
-.status-bar {
-  display: flex; gap: 20px; font-size: 13px; color: #888;
-  margin-top: 8px;
+.modal .form-group textarea { width: 100%; }
+.modal-section {
+  background: var(--bg-page); border: 1px solid var(--divider);
+  border-radius: 4px; padding: 12px 16px; margin-bottom: 16px;
 }
-.status-bar span { display: flex; align-items: center; gap: 4px; }
+.modal-section-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+.modal-actions { display: flex; gap: 8px; align-items: center; justify-content: flex-end; margin-top: 16px; }
+.modal-actions .spacer { flex: 1; }
+details { margin: 12px 0; }
+details summary { font-size: 12px; color: var(--text-tertiary); cursor: pointer; }
+
+/* ============ 响应式：窄屏收起侧边栏 ============ */
+@media (max-width: 960px) {
+  .sider { display: none; }
+  .main { margin-left: 0; }
+}
 </style>
 </head>
 <body>
 
-<div class="header">
-  <span style="font-size:24px">📊</span>
-  <h1>造数平台</h1>
-  <span class="badge">Excel → API</span>
-</div>
+<div class="layout">
+  <!-- 侧边菜单 -->
+  <aside class="sider">
+    <div class="logo">
+      <span class="logo-icon">📊</span>
+      <div>
+        <div class="logo-title">造数平台</div>
+        <div class="logo-sub">Excel → API</div>
+      </div>
+    </div>
+    <div class="menu-group">导航</div>
+    <nav>
+      <a class="menu-item active" href="#sec-generate">⚙️ 生成配置</a>
+      <a class="menu-item" href="#sec-preview">📋 数据预览</a>
+    </nav>
+  </aside>
 
-<div class="container">
+  <!-- 主区域 -->
+  <div class="main">
+    <!-- 顶部栏 -->
+    <header class="topbar">
+      <div class="breadcrumb">首页 <span style="margin:0 6px">/</span> <span class="cur">造数平台</span></div>
+      <div class="topbar-status">
+        <span class="tag tag-default" id="statusApi">🔌 接口: <strong id="apiStatusText">检查中...</strong></span>
+        <span class="tag tag-default" id="statusAuth">🔑 认证: <strong id="authStatusText">检查中...</strong></span>
+      </div>
+    </header>
 
-  <!-- 生成配置 -->
-  <div class="card">
-    <div class="card-title">⚙️ 生成配置</div>
-    <div class="form-row" style="margin-bottom:12px">
-      <div class="form-group" style="flex:1">
-        <label>🏢 成本活动 <span style="color:#888;font-weight:400;font-size:11px">— 取上个月（当前8月→7月），按用工类型分组，区分计提期/实发期</span></label>
-        <select id="activitySelect" onchange="onActivitySelectChange()" style="min-width:380px">
-          <option value="">-- 加载中 --</option>
-        </select>
+    <!-- 内容区 -->
+    <div class="content">
+      <div class="page-head">
+        <h1>造数平台</h1>
+        <p>Excel 导入模板 → 生成测试数据 → 一键导入 HRMS 成本活动明细</p>
       </div>
-      <div class="form-group" style="flex:0 0 250px">
-        <label>🎯 成本对象 <span style="color:#888;font-weight:400;font-size:11px">— 员工成本明细 / 组织成本</span></label>
-        <select id="costObjectSelect" onchange="onCostObjectChange()">
-          <option value="CO01">员工成本明细（CO01）</option>
-          <option value="CO02">组织成本（CO02）</option>
-        </select>
-      </div>
-      <div class="form-group" style="flex:0 0 190px">
-        <label>🧮 浮动类型 <span style="color:#888;font-weight:400;font-size:11px">— 切换后重新下载对应模板</span></label>
-        <select id="floatTypeSelect" onchange="onFloatTypeChange()">
-          <option value="6">6 - 特殊场景</option>
-          <option value="5">5 - 线下计算</option>
-          <option value="1">1 - 每期浮动科目</option>
-          <option value="4">4 - 不计成本</option>
-        </select>
-      </div>
-      <div class="form-group" style="justify-content:flex-end">
-        <button type="button" class="btn btn-outline btn-sm" onclick="loadActivitiesHome()">🔄 刷新活动</button>
-      </div>
-    </div>
-    <div class="form-row">
-      <div class="form-group" style="flex:1;min-width:0">
-        <label>📄 选择模板 <span class="label-hint">— 按成本对象区分；选活动后自动下载并选中</span></label>
-        <select id="templateSelect" onchange="onTemplateChange()" style="width:100%;min-width:0">
-          {% for g in template_groups %}
-          <optgroup label="🎯 {{ g['label'] }}">
-            {% for t in g['items'] %}
-            <option value="{{ t.name }}" {% if t.name == default_template %}selected{% endif %}>
-              {{ t.display }}（{{ t.columns }}列）
-            </option>
-            {% endfor %}
-          </optgroup>
-          {% endfor %}
-        </select>
-        <div id="templateInfo" style="font-size:11px;color:#0d9e6c;margin-top:4px;word-break:break-all"></div>
-      </div>
-    </div>
-    <div class="form-row gen-row">
-      <div class="form-group" style="flex:0 0 120px">
-        <label>🔢 生成行数</label>
-        <input type="number" id="rowCount" value="10" min="1" max="10000" style="width:100%">
-      </div>
-      <div class="form-group" style="flex:0 0 160px">
-        <label>🎲 随机种子</label>
-        <input type="number" id="seed" placeholder="留空=随机" style="width:100%">
-      </div>
-      <span class="gen-hint">💡 相同种子 → 生成结果可复现</span>
-    </div>
 
-    <!-- 固定值 -->
-    <div style="margin-top:12px">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-        <span style="font-size:13px;color:#666;font-weight:500">📌 固定列值（可选）</span>
-        <button class="btn btn-outline btn-sm" onclick="addFixedValue()">+ 添加</button>
-      </div>
-      <div id="fixedValuesContainer"></div>
-    </div>
+      <!-- 生成配置 -->
+      <section class="card" id="sec-generate">
+        <div class="card-title">⚙️ 生成配置 <span class="sub">按模板生成测试数据并导入</span></div>
 
-    <div class="form-row" style="margin-top:16px">
-      <button class="btn btn-primary" onclick="generatePreview()">🔍 生成预览</button>
-      <button class="btn btn-success" onclick="generateAndDownload()">📥 下载 Excel</button>
-      <button class="btn btn-success" onclick="generateAndImport()">🚀 生成并导入</button>
-      <button class="btn btn-primary" onclick="autoLogin()" id="btnAutoLogin">🔑 一键登录</button>
-      <button class="btn btn-outline" onclick="downloadSystemTemplate()">⬇ 同步系统模板</button>
-      <button class="btn btn-outline" onclick="openConfig()">🔧 接口配置</button>
-    </div>
-    <div class="status-bar">
-      <span id="statusApi">🔌 接口: <strong id="apiStatusText">未配置</strong></span>
-      <span id="statusAuth">🔑 认证: <strong id="authStatusText">检查中...</strong></span>
-      <span>📝 Cookie文件: <code style="font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:3px">platform\cookie.txt</code></span>
-      <span id="statusInfo"></span>
+        <div class="form-row">
+          <div class="form-group" style="flex:1;min-width:280px">
+            <label>🏢 成本活动 <span class="label-hint">— 取上个月（当前8月→7月），按用工类型分组，区分计提期/实发期</span></label>
+            <select id="activitySelect" onchange="onActivitySelectChange()" style="width:100%;min-width:0">
+              <option value="">-- 加载中 --</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex:0 0 250px">
+            <label>🎯 成本对象 <span class="label-hint">— 员工成本明细 / 组织成本</span></label>
+            <select id="costObjectSelect" onchange="onCostObjectChange()" style="width:100%;min-width:0">
+              <option value="CO01">员工成本明细（CO01）</option>
+              <option value="CO02">组织成本（CO02）</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex:0 0 190px">
+            <label>🧮 浮动类型 <span class="label-hint">— 切换后重新下载对应模板</span></label>
+            <select id="floatTypeSelect" onchange="onFloatTypeChange()" style="width:100%;min-width:0">
+              <option value="6">6 - 特殊场景</option>
+              <option value="5">5 - 线下计算</option>
+              <option value="1">1 - 每期浮动科目</option>
+              <option value="4">4 - 不计成本</option>
+            </select>
+          </div>
+          <div class="form-group" style="justify-content:flex-end">
+            <button type="button" class="btn btn-default btn-sm" onclick="loadActivitiesHome()">🔄 刷新活动</button>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group" style="flex:1;min-width:0">
+            <label>📄 选择模板 <span class="label-hint">— 按成本对象区分；选活动后自动下载并选中</span></label>
+            <select id="templateSelect" onchange="onTemplateChange()" style="width:100%;min-width:0">
+              {% for g in template_groups %}
+              <optgroup label="🎯 {{ g['label'] }}">
+                {% for t in g['items'] %}
+                <option value="{{ t.name }}" {% if t.name == default_template %}selected{% endif %}>
+                  {{ t.display }}（{{ t.columns }}列）
+                </option>
+                {% endfor %}
+              </optgroup>
+              {% endfor %}
+            </select>
+            <div id="templateInfo" style="font-size:12px;color:var(--success-text);margin-top:4px;word-break:break-all"></div>
+          </div>
+        </div>
+
+        <div class="form-row gen-row">
+          <div class="form-group" style="flex:0 0 120px">
+            <label>🔢 生成行数</label>
+            <input type="number" id="rowCount" value="10" min="1" max="10000" style="width:100%">
+          </div>
+          <div class="form-group" style="flex:0 0 160px">
+            <label>🎲 随机种子</label>
+            <input type="number" id="seed" placeholder="留空=随机" style="width:100%">
+          </div>
+          <span class="gen-hint">💡 相同种子 → 生成结果可复现</span>
+        </div>
+
+        <!-- 固定值 -->
+        <div class="fv-block">
+          <div class="fv-title">📌 固定列值（可选） <button class="btn btn-default btn-sm" onclick="addFixedValue()">+ 添加</button></div>
+          <div id="fixedValuesContainer"></div>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="generateAndImport()">🚀 生成并导入</button>
+          <button class="btn btn-default" onclick="generatePreview()">🔍 生成预览</button>
+          <button class="btn btn-default" onclick="generateAndDownload()">📥 下载 Excel</button>
+          <button class="btn btn-default" onclick="autoLogin()" id="btnAutoLogin">🔑 一键登录</button>
+          <button class="btn btn-text" onclick="downloadSystemTemplate()">⬇ 同步系统模板</button>
+          <button class="btn btn-text" onclick="openConfig()">🔧 接口配置</button>
+        </div>
+
+        <div class="status-bar">
+          <span>📝 Cookie文件: <code>platform\cookie.txt</code></span>
+          <span id="statusInfo"></span>
+        </div>
+      </section>
+
+      <!-- 预览 -->
+      <section class="card" id="sec-preview">
+        <div class="card-title">📋 数据预览 <span class="sub" id="previewCount"></span></div>
+        <div class="table-wrap">
+          <table id="previewTable">
+            <thead id="previewHead"></thead>
+            <tbody id="previewBody">
+              <tr><td colspan="100" style="text-align:center;color:var(--text-tertiary);padding:40px">点击「生成预览」查看数据</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <div class="page-foot">造数平台 · 数据生成与导入工具</div>
     </div>
   </div>
-
-  <!-- 预览 -->
-  <div class="card">
-    <div class="card-title">📋 数据预览 <span id="previewCount" style="color:#888;font-weight:400"></span></div>
-    <div class="table-wrap">
-      <table id="previewTable">
-        <thead id="previewHead"></thead>
-        <tbody id="previewBody">
-          <tr><td colspan="100" style="text-align:center;color:#aaa;padding:40px">点击「生成预览」查看数据</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
 </div>
 
 <!-- API 配置弹窗 -->
@@ -272,20 +379,20 @@ tr:hover td { background: #fafbff; }
     </div>
 
     <div class="form-group">
-      <label>🔐 Cookie (登录认证)  <span style="color:#888;font-weight:400;font-size:11px">— 自动登录后自动写入</span></label>
-      <textarea id="cfgCookie" rows="2" style="width:100%;padding:8px;border:1px solid #d0d5dd;border-radius:6px;font-size:12px;font-family:monospace;resize:vertical"
+      <label>🔐 Cookie (登录认证) <span class="label-hint">— 自动登录后自动写入</span></label>
+      <textarea id="cfgCookie" rows="2" style="width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:4px;font-size:12px;font-family:Consolas,monospace;resize:vertical"
         placeholder="自动登录成功后自动填充，一般无需手动编辑"></textarea>
     </div>
 
-    <div class="card" style="background:#f8f9fb;padding:12px;margin-bottom:12px;border:1px solid #e5e8ec;box-shadow:none">
-      <div style="font-size:13px;font-weight:600;margin-bottom:8px">📦 导入业务参数 <span style="color:#888;font-weight:400;font-size:11px">— 随文件一起提交的表单字段</span></div>
-      <div class="form-row" style="margin-bottom:8px;align-items:center">
+    <div class="modal-section">
+      <div class="modal-section-title">📦 导入业务参数 <span class="label-hint">— 随文件一起提交的表单字段</span></div>
+      <div class="form-row" style="margin-bottom:12px;align-items:flex-end">
         <div class="form-group" style="flex:1">
           <label>活动详情ID (activityDetailId = 计提期/实发期ID)</label>
           <input type="text" id="cfgActivityId" placeholder="如 283（计提期）/ 284（实发期）" style="width:100%">
         </div>
         <div class="form-group" style="flex:2">
-          <label>从活动列表选择 <button type="button" class="btn btn-outline btn-sm" onclick="loadActivities()">🔄 刷新</button></label>
+          <label>从活动列表选择 <button type="button" class="btn btn-default btn-sm" onclick="loadActivities()">🔄 刷新</button></label>
           <select id="cfgActivityPicker" onchange="onActivityPick()" style="width:100%">
             <option value="">-- 登录后点击刷新 --</option>
           </select>
@@ -319,12 +426,12 @@ tr:hover td { background: #fafbff; }
     </div>
 
     <div class="form-group">
-      <label>💰 工资条密码 (pay_password)  <span style="color:#888;font-weight:400;font-size:11px">— 导入返回「请输入密码」时自动验证；留空=用SSO密码</span></label>
+      <label>💰 工资条密码 (pay_password) <span class="label-hint">— 导入返回「请输入密码」时自动验证；留空=用SSO密码</span></label>
       <input type="password" id="cfgPayPwd" placeholder="留空则使用 SSO 密码" style="width:100%">
     </div>
 
-    <div class="card" style="background:#f8f9fb;padding:12px;margin-bottom:12px;border:1px solid #e5e8ec;box-shadow:none">
-      <div style="font-size:13px;font-weight:600;margin-bottom:8px">👤 SSO 自动登录账号</div>
+    <div class="modal-section">
+      <div class="modal-section-title">👤 SSO 自动登录账号</div>
       <div class="form-row" style="margin-bottom:0">
         <div class="form-group" style="flex:1">
           <label>账号</label>
@@ -337,8 +444,8 @@ tr:hover td { background: #fafbff; }
       </div>
     </div>
 
-    <details style="margin-top:12px;margin-bottom:12px">
-      <summary style="font-size:12px;color:#888;cursor:pointer">高级选项</summary>
+    <details>
+      <summary>高级选项</summary>
       <div class="form-group" style="margin-top:8px">
         <label>额外请求头 (JSON)</label>
         <input type="text" id="cfgHeaders" placeholder='{"Authorization":"Bearer xxx"}'>
@@ -350,9 +457,9 @@ tr:hover td { background: #fafbff; }
     </details>
 
     <div class="modal-actions">
-      <button class="btn btn-outline" id="btnTestConn" onclick="testConnection()">🔍 测试连接</button>
-      <span style="flex:1"></span>
-      <button class="btn btn-outline" onclick="closeConfig()">取消</button>
+      <button class="btn btn-default" id="btnTestConn" onclick="testConnection()">🔍 测试连接</button>
+      <span class="spacer"></span>
+      <button class="btn btn-default" onclick="closeConfig()">取消</button>
       <button class="btn btn-primary" onclick="saveConfig()">💾 保存</button>
     </div>
     <div id="testResult" style="margin-top:10px;font-size:13px;display:none"></div>
@@ -461,12 +568,13 @@ async function loadConfig() {
     if (cfg.import_activity_id) loadActivitiesSilent();
 
     const statusEl = document.getElementById("apiStatusText");
+    const statusChip = document.getElementById("statusApi");
     if (cfg.import_api_url) {
-      statusEl.textContent = "已配置 ✅";
-      statusEl.style.color = "#0d9e6c";
+      statusEl.textContent = "已配置";
+      statusChip.className = "tag tag-success";
     } else {
-      statusEl.textContent = "未配置 ⚠️";
-      statusEl.style.color = "#e67e22";
+      statusEl.textContent = "未配置";
+      statusChip.className = "tag tag-warning";
     }
     refreshAuthStatus();
   } catch(e) {}
@@ -477,28 +585,30 @@ async function refreshAuthStatus() {
     const resp = await fetch("/api/auth-status");
     const status = await resp.json();
     const el = document.getElementById("authStatusText");
+    const chip = document.getElementById("statusAuth");
     if (status.has_ztoken) {
       const pg = status.pay_gate || {};
       if (pg.checked && pg.ok) {
-        el.textContent = "已登录 ✅ · 工资条验证已解锁 🔓";
-        el.style.color = "#0d9e6c";
+        el.textContent = "已登录 · 工资条验证已解锁";
+        chip.className = "tag tag-success";
       } else if (pg.checked && pg.status === "no_password") {
-        el.textContent = "已登录 ✅ · 需在接口配置填写工资条密码 🔒";
-        el.style.color = "#e67e22";
+        el.textContent = "已登录 · 需填写工资条密码";
+        chip.className = "tag tag-warning";
       } else if (pg.checked) {
-        el.textContent = "已登录 ✅ · 工资条验证未解锁 🔒" + (pg.message ? "（" + pg.message + "）" : "");
-        el.style.color = "#e67e22";
+        el.textContent = "已登录 · 工资条验证未解锁" + (pg.message ? "（" + pg.message + "）" : "");
+        chip.className = "tag tag-warning";
       } else {
-        el.textContent = "已登录 ✅";
-        el.style.color = "#0d9e6c";
+        el.textContent = "已登录";
+        chip.className = "tag tag-success";
       }
     } else {
-      el.textContent = "未登录 ⚠️";
-      el.style.color = "#e67e22";
+      el.textContent = "未登录";
+      chip.className = "tag tag-error";
     }
     if (status.has_ztoken) loadActivitiesHome();
   } catch(e) {
     document.getElementById("authStatusText").textContent = "未知";
+    document.getElementById("statusAuth").className = "tag tag-default";
   }
 }
 
@@ -617,7 +727,7 @@ function renderTable(headers, rows) {
     "<tr><td>" + (i + 1) + "</td>" +
     row.map(v => {
       const cls = (typeof v === "number") ? "num" : "";
-      const display = v === null || v === undefined ? '<span style="color:#ccc">-</span>' : String(v);
+      const display = v === null || v === undefined ? '<span style="color:#C9CDD4">-</span>' : String(v);
       return `<td class="${cls}">${display}</td>`;
     }).join("") +
     "</tr>"
@@ -1006,7 +1116,7 @@ async function testConnection() {
   btn.disabled = true;
   btn.textContent = "⏳ 发送测试请求...";
   resultDiv.style.display = "block";
-  resultDiv.innerHTML = '<span style="color:#888">正在发送 POST 请求（含 Cookie）...</span>';
+  resultDiv.innerHTML = '<span style="color:var(--text-tertiary)">正在发送 POST 请求（含 Cookie）...</span>';
 
   // 先保存当前配置
   await saveConfigSilent();
@@ -1019,39 +1129,39 @@ async function testConnection() {
       const code = data.status_code;
       let html = '';
       if (data.is_auth_error) {
-        html = `<span style="color:#e74c3c">❌ 认证失败 (HTTP ${code}) — Cookie 无效或已过期</span>`;
+        html = `<span style="color:#CF1322">❌ 认证失败 (HTTP ${code}) — Cookie 无效或已过期</span>`;
       } else if (data.is_redirect_login) {
-        html = `<span style="color:#e74c3c">❌ 被重定向到登录页 (HTTP ${code}) — Cookie 无效</span>`;
+        html = `<span style="color:#CF1322">❌ 被重定向到登录页 (HTTP ${code}) — Cookie 无效</span>`;
       } else if (String(data.biz_code) === "0" || String(data.biz_code) === "200") {
-        html = `<span style="color:#0d9e6c">✅ 接口连通且业务通过 (HTTP ${code}, biz_code=${data.biz_code})${data.biz_message ? "：" + escapeHtml(data.biz_message) : ""}</span>`;
+        html = `<span style="color:#389E0D">✅ 接口连通且业务通过 (HTTP ${code}, biz_code=${data.biz_code})${data.biz_message ? "：" + escapeHtml(data.biz_message) : ""}</span>`;
       } else if (data.biz_code != null) {
-        html = `<span style="color:#e67e22">⚠️ 接口可达，但业务返回 code=${data.biz_code}：${escapeHtml(data.biz_message || "")}（HTTP ${code}）</span>`;
+        html = `<span style="color:#D48806">⚠️ 接口可达，但业务返回 code=${data.biz_code}：${escapeHtml(data.biz_message || "")}（HTTP ${code}）</span>`;
       } else if (code >= 200 && code < 300) {
-        html = `<span style="color:#0d9e6c">✅ 连接正常 (HTTP ${code}) — 接口可达，可以导入</span>`;
+        html = `<span style="color:#389E0D">✅ 连接正常 (HTTP ${code}) — 接口可达，可以导入</span>`;
       } else if (code >= 400 && code < 500) {
-        html = `<span style="color:#e67e22">⚠️ 客户端错误 HTTP ${code} — 接口可达但请求被拒（可能是文件格式校验）</span>`;
+        html = `<span style="color:#D48806">⚠️ 客户端错误 HTTP ${code} — 接口可达但请求被拒（可能是文件格式校验）</span>`;
       } else {
-        html = `<span style="color:#e67e22">⚠️ 接口返回 HTTP ${code}</span>`;
+        html = `<span style="color:#D48806">⚠️ 接口返回 HTTP ${code}</span>`;
       }
       // 工资条安全验证状态
       if (data.pay_gate) {
         const pg = data.pay_gate;
         if (["already_unlocked","verified","set_and_unlocked"].includes(pg.status)) {
-          html += `<br><span style="color:#0d9e6c">🔓 工资条安全验证：已解锁（${pg.status}）</span>`;
+          html += `<br><span style="color:#389E0D">🔓 工资条安全验证：已解锁（${pg.status}）</span>`;
         } else {
-          html += `<br><span style="color:#e74c3c">🔒 工资条安全验证：未解锁（${pg.status || "未知"}）${pg.message ? " — " + escapeHtml(pg.message) : ""}</span>`;
+          html += `<br><span style="color:#CF1322">🔒 工资条安全验证：未解锁（${pg.status || "未知"}）${pg.message ? " — " + escapeHtml(pg.message) : ""}</span>`;
         }
       }
       // Show response preview
       if (data.response_preview) {
-        html += `<br><pre style="font-size:11px;color:#666;margin-top:6px;max-height:120px;overflow:auto;background:#f7f7f7;padding:6px;border-radius:4px">${escapeHtml(data.response_preview)}</pre>`;
+        html += `<br><pre style="font-size:11px;color:#4E5969;margin-top:6px;max-height:120px;overflow:auto;background:var(--divider);padding:6px;border-radius:4px">${escapeHtml(data.response_preview)}</pre>`;
       }
       resultDiv.innerHTML = html;
     } else {
-      resultDiv.innerHTML = `<span style="color:#e74c3c">❌ ${escapeHtml(data.error)}</span>`;
+      resultDiv.innerHTML = `<span style="color:#CF1322">❌ ${escapeHtml(data.error)}</span>`;
     }
   } catch(e) {
-    resultDiv.innerHTML = `<span style="color:#e74c3c">❌ ${escapeHtml(e.message)}</span>`;
+    resultDiv.innerHTML = `<span style="color:#CF1322">❌ ${escapeHtml(e.message)}</span>`;
   }
   btn.disabled = false;
   btn.textContent = "🔍 测试连接";
@@ -1161,6 +1271,16 @@ function showToast(msg, type) {
   document.body.appendChild(toast);
   setTimeout(() => toast.remove(), 3000);
 }
+
+// ============================================================
+// 侧边菜单激活态
+// ============================================================
+document.querySelectorAll(".menu-item").forEach(a => {
+  a.addEventListener("click", function() {
+    document.querySelectorAll(".menu-item").forEach(x => x.classList.remove("active"));
+    this.classList.add("active");
+  });
+});
 
 // ============================================================
 // 键盘快捷键
