@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>造数平台</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+  background: #f0f2f5;
+  color: #333;
+  min-height: 100vh;
+}
+.header {
+  background: linear-gradient(135deg, #1a73e8, #1557b0);
+  color: #fff;
+  padding: 16px 28px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.15);
+}
+.header h1 { font-size: 20px; font-weight: 600; }
+.header .badge { background: rgba(255,255,255,.2); padding: 2px 10px; border-radius: 10px; font-size: 12px; }
+
+.container { max-width: 1200px; margin: 20px auto; padding: 0 16px; }
+
+.card {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.08);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+.card-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Form */
+.form-row { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 12px; }
+.form-group { display: flex; flex-direction: column; gap: 4px; }
+.form-group label { font-size: 13px; color: #666; font-weight: 500; }
+.form-group select, .form-group input {
+  padding: 8px 12px;
+  border: 1px solid #d0d5dd;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color .2s;
+}
+.form-group select:focus, .form-group input:focus { border-color: #1a73e8; box-shadow: 0 0 0 3px rgba(26,115,232,.12); }
+.form-group select { min-width: 280px; }
+.form-group input { width: 100px; }
+.label-hint { color:#888; font-weight:400; font-size:11px; white-space: nowrap; }
+
+/* 生成参数行：行数 + 种子固定一行，与模板选择分开展示 */
+.gen-row { 
+  flex-wrap: nowrap;
+  align-items: flex-end;
+  background: #f8fafd;
+  border: 1px solid #eef1f6;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 0;
+}
+.gen-row .form-group label { white-space: nowrap; margin-bottom: 1px; }
+.gen-hint { font-size:11px; color:#9aa4b1; margin-left:auto; padding-bottom:9px; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 18px;
+  border: none; border-radius: 6px;
+  font-size: 14px; font-weight: 500;
+  cursor: pointer;
+  transition: all .2s;
+}
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn-primary { background: #1a73e8; color: #fff; }
+.btn-primary:hover:not(:disabled) { background: #1557b0; }
+.btn-success { background: #0d9e6c; color: #fff; }
+.btn-success:hover:not(:disabled) { background: #0b7d55; }
+.btn-outline { background: #fff; color: #1a73e8; border: 1px solid #1a73e8; }
+.btn-outline:hover:not(:disabled) { background: #e8f0fe; }
+.btn-sm { padding: 5px 12px; font-size: 12px; }
+
+/* Fixed values section */
+.fv-row { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
+.fv-row select { width: 200px; padding: 6px 10px; border: 1px solid #d0d5dd; border-radius: 6px; font-size: 13px; }
+.fv-row input { width: 180px; padding: 6px 10px; border: 1px solid #d0d5dd; border-radius: 6px; font-size: 13px; }
+.fv-row .btn-remove { color: #e74c3c; cursor: pointer; border: none; background: none; font-size: 16px; }
+
+/* Table */
+.table-wrap { overflow-x: auto; max-height: 500px; overflow-y: auto; border: 1px solid #e8e8e8; border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { background: #f7f8fa; padding: 8px 10px; text-align: left; font-weight: 600; border-bottom: 2px solid #e8e8e8; white-space: nowrap; position: sticky; top: 0; z-index: 1; }
+td { padding: 7px 10px; border-bottom: 1px solid #f0f0f0; white-space: nowrap; max-width: 200px; overflow: hidden; text-overflow: ellipsis; }
+tr:hover td { background: #fafbff; }
+.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* Toast */
+.toast {
+  position: fixed; top: 20px; right: 20px; z-index: 9999;
+  padding: 12px 20px; border-radius: 8px; color: #fff;
+  font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,.2);
+  animation: slideIn .3s ease;
+  max-width: 450px;
+}
+.toast-success { background: #0d9e6c; }
+.toast-error { background: #e74c3c; }
+.toast-info { background: #1a73e8; }
+@keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+/* API Config Modal */
+.modal-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,.3); z-index: 100;
+  display: flex; align-items: center; justify-content: center;
+}
+.modal {
+  background: #fff; border-radius: 12px; padding: 24px;
+  width: 520px; max-height: 80vh; overflow-y: auto;
+  box-shadow: 0 8px 30px rgba(0,0,0,.2);
+}
+.modal h3 { margin-bottom: 16px; }
+.modal .form-group { margin-bottom: 12px; }
+.modal .form-group input { width: 100%; }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; }
+
+.hidden { display: none !important; }
+
+.status-bar {
+  display: flex; gap: 20px; font-size: 13px; color: #888;
+  margin-top: 8px;
+}
+.status-bar span { display: flex; align-items: center; gap: 4px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span style="font-size:24px">📊</span>
+  <h1>造数平台</h1>
+  <span class="badge">Excel → API</span>
+</div>
+
+<div class="container">
+
+  <!-- 生成配置 -->
+  <div class="card">
+    <div class="card-title">⚙️ 生成配置</div>
+    <div class="form-row" style="margin-bottom:12px">
+      <div class="form-group" style="flex:1">
+        <label>🏢 成本活动 <span style="color:#888;font-weight:400;font-size:11px">— 取上个月（当前8月→7月），按用工类型分组，区分计提期/实发期</span></label>
+        <select id="activitySelect" onchange="onActivitySelectChange()" style="min-width:380px">
+          <option value="">-- 加载中 --</option>
+        </select>
+      </div>
+      <div class="form-group" style="flex:0 0 250px">
+        <label>🎯 成本对象 <span style="color:#888;font-weight:400;font-size:11px">— 员工成本明细 / 组织成本</span></label>
+        <select id="costObjectSelect" onchange="onCostObjectChange()">
+          <option value="CO01">员工成本明细（CO01）</option>
+          <option value="CO02">组织成本（CO02）</option>
+        </select>
+      </div>
+      <div class="form-group" style="flex:0 0 190px">
+        <label>🧮 浮动类型 <span style="color:#888;font-weight:400;font-size:11px">— 切换后重新下载对应模板</span></label>
+        <select id="floatTypeSelect" onchange="onFloatTypeChange()">
+          <option value="6">6 - 特殊场景</option>
+          <option value="5">5 - 线下计算</option>
+          <option value="1">1 - 每期浮动科目</option>
+          <option value="4">4 - 不计成本</option>
+        </select>
+      </div>
+      <div class="form-group" style="justify-content:flex-end">
+        <button type="button" class="btn btn-outline btn-sm" onclick="loadActivitiesHome()">🔄 刷新活动</button>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group" style="flex:1;min-width:0">
+        <label>📄 选择模板 <span class="label-hint">— 按成本对象区分；选活动后自动下载并选中</span></label>
+        <select id="templateSelect" onchange="onTemplateChange()" style="width:100%;min-width:0">
+          {% for g in template_groups %}
+          <optgroup label="🎯 {{ g['label'] }}">
+            {% for t in g['items'] %}
+            <option value="{{ t.name }}" {% if t.name == default_template %}selected{% endif %}>
+              {{ t.display }}（{{ t.columns }}列）
+            </option>
+            {% endfor %}
+          </optgroup>
+          {% endfor %}
+        </select>
+        <div id="templateInfo" style="font-size:11px;color:#0d9e6c;margin-top:4px;word-break:break-all"></div>
+      </div>
+    </div>
+    <div class="form-row gen-row">
+      <div class="form-group" style="flex:0 0 120px">
+        <label>🔢 生成行数</label>
+        <input type="number" id="rowCount" value="10" min="1" max="10000" style="width:100%">
+      </div>
+      <div class="form-group" style="flex:0 0 160px">
+        <label>🎲 随机种子</label>
+        <input type="number" id="seed" placeholder="留空=随机" style="width:100%">
+      </div>
+      <span class="gen-hint">💡 相同种子 → 生成结果可复现</span>
+    </div>
+
+    <!-- 固定值 -->
+    <div style="margin-top:12px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <span style="font-size:13px;color:#666;font-weight:500">📌 固定列值（可选）</span>
+        <button class="btn btn-outline btn-sm" onclick="addFixedValue()">+ 添加</button>
+      </div>
+      <div id="fixedValuesContainer"></div>
+    </div>
+
+    <div class="form-row" style="margin-top:16px">
+      <button class="btn btn-primary" onclick="generatePreview()">🔍 生成预览</button>
+      <button class="btn btn-success" onclick="generateAndDownload()">📥 下载 Excel</button>
+      <button class="btn btn-success" onclick="generateAndImport()">🚀 生成并导入</button>
+      <button class="btn btn-primary" onclick="autoLogin()" id="btnAutoLogin">🔑 一键登录</button>
+      <button class="btn btn-outline" onclick="downloadSystemTemplate()">⬇ 同步系统模板</button>
+      <button class="btn btn-outline" onclick="openConfig()">🔧 接口配置</button>
+    </div>
+    <div class="status-bar">
+      <span id="statusApi">🔌 接口: <strong id="apiStatusText">未配置</strong></span>
+      <span id="statusAuth">🔑 认证: <strong id="authStatusText">检查中...</strong></span>
+      <span>📝 Cookie文件: <code style="font-size:11px;background:#f0f0f0;padding:1px 4px;border-radius:3px">platform\cookie.txt</code></span>
+      <span id="statusInfo"></span>
+    </div>
+  </div>
+
+  <!-- 预览 -->
+  <div class="card">
+    <div class="card-title">📋 数据预览 <span id="previewCount" style="color:#888;font-weight:400"></span></div>
+    <div class="table-wrap">
+      <table id="previewTable">
+        <thead id="previewHead"></thead>
+        <tbody id="previewBody">
+          <tr><td colspan="100" style="text-align:center;color:#aaa;padding:40px">点击「生成预览」查看数据</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- API 配置弹窗 -->
+<div class="modal-overlay hidden" id="configModal">
+  <div class="modal">
+    <h3>🔧 导入接口配置</h3>
+    <div class="form-group">
+      <label>接口 URL</label>
+      <input type="text" id="cfgUrl" placeholder="https://api.example.com/import">
+    </div>
+    <div class="form-row">
+      <div class="form-group" style="flex:1">
+        <label>HTTP 方法</label>
+        <select id="cfgMethod"><option value="POST">POST</option><option value="PUT">PUT</option></select>
+      </div>
+      <div class="form-group" style="flex:1">
+        <label>文件字段名</label>
+        <input type="text" id="cfgFieldName" value="file" style="width:100%">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>🔐 Cookie (登录认证)  <span style="color:#888;font-weight:400;font-size:11px">— 自动登录后自动写入</span></label>
+      <textarea id="cfgCookie" rows="2" style="width:100%;padding:8px;border:1px solid #d0d5dd;border-radius:6px;font-size:12px;font-family:monospace;resize:vertical"
+        placeholder="自动登录成功后自动填充，一般无需手动编辑"></textarea>
+    </div>
+
+    <div class="card" style="background:#f8f9fb;padding:12px;margin-bottom:12px;border:1px solid #e5e8ec;box-shadow:none">
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px">📦 导入业务参数 <span style="color:#888;font-weight:400;font-size:11px">— 随文件一起提交的表单字段</span></div>
+      <div class="form-row" style="margin-bottom:8px;align-items:center">
+        <div class="form-group" style="flex:1">
+          <label>活动详情ID (activityDetailId = 计提期/实发期ID)</label>
+          <input type="text" id="cfgActivityId" placeholder="如 283（计提期）/ 284（实发期）" style="width:100%">
+        </div>
+        <div class="form-group" style="flex:2">
+          <label>从活动列表选择 <button type="button" class="btn btn-outline btn-sm" onclick="loadActivities()">🔄 刷新</button></label>
+          <select id="cfgActivityPicker" onchange="onActivityPick()" style="width:100%">
+            <option value="">-- 登录后点击刷新 --</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row" style="margin-bottom:0">
+        <div class="form-group" style="flex:1">
+          <label>成本对象 costObject</label>
+          <select id="cfgCostObject">
+            <option value="CO01">CO01 - 员工成本明细</option>
+            <option value="CO02">CO02 - 组织成本明细</option>
+          </select>
+        </div>
+        <div class="form-group" style="flex:1">
+          <label>浮动类型 floatType</label>
+          <select id="cfgFloatType">
+            <option value="6">6 - 特殊场景</option>
+            <option value="1">1 - 每期浮动科目</option>
+            <option value="5">5 - 线下计算</option>
+          </select>
+        </div>
+        <div class="form-group" style="flex:1">
+          <label>下载模板包含数据 includeData</label>
+          <select id="cfgIncludeData">
+            <option value="">空</option>
+            <option value="0">0 - 否</option>
+            <option value="1">1 - 是</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>💰 工资条密码 (pay_password)  <span style="color:#888;font-weight:400;font-size:11px">— 导入返回「请输入密码」时自动验证；留空=用SSO密码</span></label>
+      <input type="password" id="cfgPayPwd" placeholder="留空则使用 SSO 密码" style="width:100%">
+    </div>
+
+    <div class="card" style="background:#f8f9fb;padding:12px;margin-bottom:12px;border:1px solid #e5e8ec;box-shadow:none">
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px">👤 SSO 自动登录账号</div>
+      <div class="form-row" style="margin-bottom:0">
+        <div class="form-group" style="flex:1">
+          <label>账号</label>
+          <input type="text" id="cfgSsoUser" placeholder="zt22650" style="width:100%">
+        </div>
+        <div class="form-group" style="flex:1">
+          <label>密码</label>
+          <input type="password" id="cfgSsoPwd" placeholder="******" style="width:100%">
+        </div>
+      </div>
+    </div>
+
+    <details style="margin-top:12px;margin-bottom:12px">
+      <summary style="font-size:12px;color:#888;cursor:pointer">高级选项</summary>
+      <div class="form-group" style="margin-top:8px">
+        <label>额外请求头 (JSON)</label>
+        <input type="text" id="cfgHeaders" placeholder='{"Authorization":"Bearer xxx"}'>
+      </div>
+      <div class="form-group">
+        <label>额外表单字段 (JSON)</label>
+        <input type="text" id="cfgExtraFields" placeholder='{"type":"employee_special"}'>
+      </div>
+    </details>
+
+    <div class="modal-actions">
+      <button class="btn btn-outline" id="btnTestConn" onclick="testConnection()">🔍 测试连接</button>
+      <span style="flex:1"></span>
+      <button class="btn btn-outline" onclick="closeConfig()">取消</button>
+      <button class="btn btn-primary" onclick="saveConfig()">💾 保存</button>
+    </div>
+    <div id="testResult" style="margin-top:10px;font-size:13px;display:none"></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// 全局状态
+// ============================================================
+let currentTemplate = "{{ default_template }}";
+let currentColumns = [];
+let generatedRows = [];
+
+// ============================================================
+// 初始化
+// ============================================================
+function init() {
+  onTemplateChange();
+  loadConfig();
+}
+
+// 从规范模板文件名识别：成本对象 / 期间 / 月份
+function parseTemplateName(name) {
+  const co = name.includes("员工成本明细") ? "CO01" : (name.includes("组织成本") ? "CO02" : "");
+  const period = name.includes("_计提_") ? "计提" : (name.includes("_实发_") ? "实发" : "");
+  let month = "";
+  const m = name.match(/_(\d{6})_/);
+  if (m) month = m[1].slice(0, 4) + "/" + m[1].slice(4);
+  return { co, period, month };
+}
+
+async function onTemplateChange() {
+  currentTemplate = document.getElementById("templateSelect").value;
+  const infoEl = document.getElementById("templateInfo");
+  document.getElementById("fixedValuesContainer").innerHTML = "";
+  if (!currentTemplate) {
+    if (infoEl) infoEl.textContent = "";
+    currentColumns = [];
+    return;
+  }
+  // 识别模板内容：成本对象 + 期间 + 月份，同步到成本对象选择器和配置
+  const meta = parseTemplateName(currentTemplate);
+  if (meta.co) {
+    currentCostObject = meta.co;
+    const coSel = document.getElementById("costObjectSelect");
+    if (coSel) coSel.value = meta.co;
+    document.getElementById("cfgCostObject").value = meta.co;
+  }
+  if (meta.month) currentActivityMonth = meta.month;
+  // 同步浮动类型（如选了 线下计算 模板 → 配置自动切为 5）
+  for (const [label, val] of Object.entries(FT_TO_VALUE)) {
+    if (currentTemplate.includes(label)) {
+      currentFloatType = val;
+      const ftSel = document.getElementById("floatTypeSelect");
+      if (ftSel) ftSel.value = val;
+      document.getElementById("cfgFloatType").value = val;
+      break;
+    }
+  }
+  try {
+    const resp = await fetch(`/api/template/${encodeURIComponent(currentTemplate)}/columns`);
+    currentColumns = await resp.json();
+    if (infoEl) {
+      const cols = currentColumns.map(c => c.cn_name).filter(n => n).slice(0, 8).join("、");
+      const tags = [];
+      if (meta.co) tags.push(CO_LABELS[meta.co] || meta.co);
+      if (meta.period) tags.push(meta.period + "期");
+      if (meta.month) tags.push(meta.month);
+      infoEl.textContent = `🔍 已识别模板内容：${currentColumns.length} 列 · ${tags.join(" · ")}${cols ? " → " + cols + "…" : ""}`;
+    }
+  } catch(e) {
+    currentColumns = [];
+  }
+  generatePreview(true);  // 根据所选模板内容自动生成数据
+}
+
+async function loadConfig() {
+  try {
+    const resp = await fetch("/api/config");
+    const cfg = await resp.json();
+    document.getElementById("cfgUrl").value = cfg.import_api_url || "";
+    document.getElementById("cfgMethod").value = cfg.import_api_method || "POST";
+    document.getElementById("cfgFieldName").value = cfg.import_api_field_name || "file";
+    document.getElementById("cfgCookie").value = cfg.import_api_cookie || "";
+    document.getElementById("cfgSsoUser").value = cfg.sso_username || "";
+    document.getElementById("cfgSsoPwd").value = cfg.sso_password || "";
+    document.getElementById("cfgHeaders").value = JSON.stringify(cfg.import_api_headers || {}, null, 2);
+    document.getElementById("cfgExtraFields").value = JSON.stringify(cfg.import_api_extra_fields || {}, null, 2);
+    document.getElementById("cfgActivityId").value = cfg.import_activity_id || "";
+    document.getElementById("cfgCostObject").value = cfg.import_cost_object || "CO01";
+    // 首页成本对象选择器与配置同步
+    const coSel = document.getElementById("costObjectSelect");
+    if (coSel && (cfg.import_cost_object === "CO01" || cfg.import_cost_object === "CO02")) {
+      coSel.value = cfg.import_cost_object;
+      currentCostObject = cfg.import_cost_object;
+    }
+    document.getElementById("cfgFloatType").value = cfg.import_float_type || "6";
+    const ftSel = document.getElementById("floatTypeSelect");
+    if (ftSel && ["1", "4", "5", "6"].includes(cfg.import_float_type)) {
+      ftSel.value = cfg.import_float_type;
+      currentFloatType = cfg.import_float_type;
+    }
+    document.getElementById("cfgIncludeData").value = cfg.import_include_data || "";
+    document.getElementById("cfgPayPwd").value = cfg.pay_password || "";
+    if (cfg.import_activity_id) loadActivitiesSilent();
+
+    const statusEl = document.getElementById("apiStatusText");
+    if (cfg.import_api_url) {
+      statusEl.textContent = "已配置 ✅";
+      statusEl.style.color = "#0d9e6c";
+    } else {
+      statusEl.textContent = "未配置 ⚠️";
+      statusEl.style.color = "#e67e22";
+    }
+    refreshAuthStatus();
+  } catch(e) {}
+}
+
+async function refreshAuthStatus() {
+  try {
+    const resp = await fetch("/api/auth-status");
+    const status = await resp.json();
+    const el = document.getElementById("authStatusText");
+    if (status.has_ztoken) {
+      const pg = status.pay_gate || {};
+      if (pg.checked && pg.ok) {
+        el.textContent = "已登录 ✅ · 工资条验证已解锁 🔓";
+        el.style.color = "#0d9e6c";
+      } else if (pg.checked && pg.status === "no_password") {
+        el.textContent = "已登录 ✅ · 需在接口配置填写工资条密码 🔒";
+        el.style.color = "#e67e22";
+      } else if (pg.checked) {
+        el.textContent = "已登录 ✅ · 工资条验证未解锁 🔒" + (pg.message ? "（" + pg.message + "）" : "");
+        el.style.color = "#e67e22";
+      } else {
+        el.textContent = "已登录 ✅";
+        el.style.color = "#0d9e6c";
+      }
+    } else {
+      el.textContent = "未登录 ⚠️";
+      el.style.color = "#e67e22";
+    }
+    if (status.has_ztoken) loadActivitiesHome();
+  } catch(e) {
+    document.getElementById("authStatusText").textContent = "未知";
+  }
+}
+
+// ============================================================
+// 固定值
+// ============================================================
+function addFixedValue(colIdx, value) {
+  const container = document.getElementById("fixedValuesContainer");
+  const div = document.createElement("div");
+  div.className = "fv-row";
+
+  const select = document.createElement("select");
+  select.innerHTML = '<option value="">-- 选择列 --</option>';
+  for (const col of currentColumns) {
+    select.innerHTML += `<option value="${col.index}" ${col.index == colIdx ? 'selected' : ''}>${col.col_letter} - ${col.cn_name} ${col.enum_values.length ? '(' + col.enum_values.slice(0,3).join(',') + '...)' : ''}</option>`;
+  }
+  if (colIdx !== undefined) select.value = colIdx;
+
+  const input = document.createElement("input");
+  input.placeholder = "固定值";
+  if (value) input.value = value;
+
+  const btn = document.createElement("button");
+  btn.className = "btn-remove";
+  btn.textContent = "✕";
+  btn.onclick = () => div.remove();
+
+  div.appendChild(select);
+  div.appendChild(input);
+  div.appendChild(btn);
+  container.appendChild(div);
+
+  // When enum column selected, show datalist
+  select.onchange = function() {
+    const idx = parseInt(this.value);
+    const col = currentColumns.find(c => c.index === idx);
+    if (col && col.enum_values && col.enum_values.length > 0) {
+      const datalistId = "dl_" + idx;
+      let dl = document.getElementById(datalistId);
+      if (!dl) {
+        dl = document.createElement("datalist");
+        dl.id = datalistId;
+        document.body.appendChild(dl);
+      }
+      dl.innerHTML = col.enum_values.map(v => `<option value="${v}">`).join('');
+      input.setAttribute("list", datalistId);
+    } else {
+      input.removeAttribute("list");
+    }
+  };
+}
+
+// ============================================================
+// API 调用
+// ============================================================
+function getFixedValues() {
+  const fv = {};
+  document.querySelectorAll("#fixedValuesContainer .fv-row").forEach(row => {
+    const select = row.querySelector("select");
+    const input = row.querySelector("input");
+    if (select.value && input.value.trim()) {
+      fv[parseInt(select.value)] = input.value.trim();
+    }
+  });
+  return fv;
+}
+
+function getSeed() {
+  const s = document.getElementById("seed").value;
+  return s ? parseInt(s) : null;
+}
+
+function getCount() {
+  return parseInt(document.getElementById("rowCount").value) || 10;
+}
+
+async function generatePreview(silent) {
+  const count = getCount();
+  // 以当前下拉框实际选中的模板为准
+  const tpl = document.getElementById("templateSelect").value || currentTemplate;
+  currentTemplate = tpl;
+  if (!tpl) { if (!silent) showToast("请先选择模板", "error"); return; }
+  if (!silent) showToast(`正在按模板 ${tpl} 生成 ${count} 行数据...`, "info");
+
+  try {
+    const resp = await fetch("/api/generate", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        template: tpl,
+        count: count,
+        seed: getSeed(),
+        fixed_values: getFixedValues(),
+        month: currentActivityMonth || "",
+      }),
+    });
+    const data = await resp.json();
+    if (data.error) { if (!silent) showToast(data.error, "error"); return; }
+
+    generatedRows = data.rows;
+    renderTable(data.headers, data.rows);
+    document.getElementById("previewCount").textContent = `(${data.count} 行)`;
+    document.getElementById("statusInfo").textContent = `✅ 生成 ${data.count} 行 @ ${new Date().toLocaleTimeString()}`;
+    if (!silent) showToast(`已生成 ${data.count} 行数据`, "success");
+  } catch(e) {
+    if (!silent) showToast("生成失败: " + e.message, "error");
+  }
+}
+
+function renderTable(headers, rows) {
+  const thead = document.getElementById("previewHead");
+  const tbody = document.getElementById("previewBody");
+
+  thead.innerHTML = "<tr><th>#</th>" + headers.map(h => `<th>${h || '(空)'}</th>`).join("") + "</tr>";
+  tbody.innerHTML = rows.map((row, i) =>
+    "<tr><td>" + (i + 1) + "</td>" +
+    row.map(v => {
+      const cls = (typeof v === "number") ? "num" : "";
+      const display = v === null || v === undefined ? '<span style="color:#ccc">-</span>' : String(v);
+      return `<td class="${cls}">${display}</td>`;
+    }).join("") +
+    "</tr>"
+  ).join("");
+}
+
+async function generateAndDownload() {
+  const count = getCount();
+  // 以下拉框当前选中的模板为准，下载的就是所选模板对应的 Excel
+  const tpl = document.getElementById("templateSelect").value || currentTemplate;
+  currentTemplate = tpl;
+  if (!tpl) { showToast("请先选择模板", "error"); return; }
+  showToast(`正在按模板 ${tpl} 生成 Excel (${count} 行)...`, "info");
+
+  try {
+    const resp = await fetch("/api/download", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        template: tpl,
+        count: count,
+        seed: getSeed(),
+        fixed_values: getFixedValues(),
+        month: currentActivityMonth || "",
+      }),
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json();
+      showToast(err.error || "下载失败", "error");
+      return;
+    }
+
+    const blob = await resp.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = tpl.replace(/\.xlsx$/i, "") + "_生成数据.xlsx";
+    a.click();
+    window.URL.revokeObjectURL(url);
+    showToast("下载完成 ✅", "success");
+    document.getElementById("statusInfo").textContent = `📥 已下载 ${a.download}`;
+  } catch(e) {
+    showToast("下载失败: " + e.message, "error");
+  }
+}
+
+async function generateAndImport() {
+  const count = getCount();
+  // 以下拉框当前选中的模板为准
+  const tpl = document.getElementById("templateSelect").value || currentTemplate;
+  currentTemplate = tpl;
+  if (!tpl) { showToast("请先选择模板", "error"); return; }
+  showToast(`正在按模板 ${tpl} 生成并导入 ${count} 行...`, "info");
+
+  const formData = new FormData();
+  formData.append("template", tpl);
+  formData.append("count", count);
+  if (getSeed()) formData.append("seed", getSeed());
+  if (currentActivityMonth) formData.append("month", currentActivityMonth);
+
+  const fv = getFixedValues();
+  for (const [k, v] of Object.entries(fv)) {
+    formData.append("fv_" + k, v);
+  }
+
+  // 先用配置弹窗里的当前值保存（含活动ID/成本对象/浮动类型/工资条密码）
+  await saveConfigSilent();
+
+  try {
+    const resp = await fetch("/api/import", { method: "POST", body: formData });
+    const result = await resp.json();
+
+    if (result.success) {
+      showToast(`导入成功！(${result.rows_generated} 行) HTTP ${result.status_code}`, "success");
+      document.getElementById("statusInfo").textContent = `🚀 已导入 ${result.rows_generated} 行 → ${result.url}`;
+    } else {
+      const errMsg = result.error
+        || (result.biz_message !== undefined && result.biz_message !== "" ? `业务失败 code=${result.biz_code}：${result.biz_message}` : "")
+        || (typeof result.response === "string" ? result.response : JSON.stringify(result.response || "未知错误"));
+      showToast("导入失败: " + errMsg, "error");
+      document.getElementById("statusInfo").textContent = `❌ 导入失败: ${errMsg}`;
+    }
+  } catch(e) {
+    showToast("导入请求失败: " + e.message, "error");
+  }
+}
+
+// ============================================================
+// 配置弹窗
+// ============================================================
+function openConfig() {
+  document.getElementById("configModal").classList.remove("hidden");
+  loadConfig();
+}
+function closeConfig() {
+  document.getElementById("configModal").classList.add("hidden");
+}
+
+// ============================================================
+// 活动列表（活动详情ID 选择器）
+// ============================================================
+async function loadActivities(silent) {
+  const picker = document.getElementById("cfgActivityPicker");
+  try {
+    let resp = await fetch("/api/activities?month=" + encodeURIComponent(prevMonthStr()));
+    let data = await resp.json();
+    if (!data.success) {
+      if (!silent) showToast("获取活动列表失败: " + (data.error || "未登录，请先一键登录"), "error");
+      return;
+    }
+    let items = data.items || [];
+    if (!items.length) {
+      resp = await fetch("/api/activities");
+      data = await resp.json();
+      items = data.items || [];
+    }
+    if (!items.length) {
+      picker.innerHTML = `<option value="">-- 上月(${prevMonthStr()})暂无活动 --</option>`;
+      if (!silent) showToast(`上月(${prevMonthStr()})暂无活动`, "info");
+      return;
+    }
+    let html = '<option value="">-- 请选择活动（上月，计提期/实发期） --</option>';
+    for (const it of items) {
+      if (it.accrualId) html += `<option value="${it.accrualId}">计提期 | ${it.name} ${it.month}（ID ${it.accrualId}${it.accrualStatus ? " · " + it.accrualStatus : ""}）</option>`;
+      if (it.actualId) html += `<option value="${it.actualId}">实发期 | ${it.name} ${it.month}（ID ${it.actualId}${it.actualStatus ? " · " + it.actualStatus : ""}）</option>`;
+    }
+    picker.innerHTML = html;
+    // 高亮当前配置的活动ID
+    const cur = document.getElementById("cfgActivityId").value.trim();
+    if (cur) {
+      const match = Array.from(picker.options).find(o => String(o.value) === String(cur));
+      if (match) picker.value = match.value;
+    }
+    if (!silent) showToast(`已加载 ${items.length} 个活动`, "info");
+  } catch(e) {
+    if (!silent) showToast("获取活动列表失败: " + e.message, "error");
+  }
+}
+function loadActivitiesSilent() { loadActivities(true); }
+function onActivityPick() {
+  document.getElementById("cfgActivityId").value = document.getElementById("cfgActivityPicker").value;
+}
+
+// ============================================================
+// 首页成本活动选择：仅当前月份、按用工类型分组、区分计提/实发；
+// 成本对象区分员工成本明细/组织成本；选中后自动下载对应模板并生成数据
+// ============================================================
+let activityMap = {};           // 活动详情ID -> {month, period, name}
+let currentActivityMonth = "";  // 当前选中活动的月份（如 2026/08），生成数据时自动匹配
+let currentActivityInfo = null; // {id, name, period, month}，用于模板筛选
+let currentCostObject = "CO01"; // 成本对象：CO01 员工成本明细 / CO02 组织成本
+let currentFloatType = "6";     // 浮动类型（与配置 import_float_type 同步）
+const CO_LABELS = { "CO01": "员工成本明细", "CO02": "组织成本" };
+const FT_LABELS = { "1": "每期浮动", "4": "不计成本", "5": "线下计算", "6": "特殊场景" };
+const FT_TO_VALUE = { "每期浮动": "1", "线下计算": "5", "不计成本": "4", "特殊场景": "6" };
+
+function prevMonthStr() {
+  // 业务需求：成本活动取当前月份的“上个月”（当前8月 → 7月）
+  const d = new Date();
+  const pm = new Date(d.getFullYear(), d.getMonth() - 1, 1);
+  return pm.getFullYear() + "/" + String(pm.getMonth() + 1).padStart(2, "0");
+}
+
+async function loadActivitiesHome() {
+  const sel = document.getElementById("activitySelect");
+  try {
+    let resp = await fetch("/api/activities?month=" + encodeURIComponent(prevMonthStr()));
+    let data = await resp.json();
+    if (!data.success) {
+      sel.innerHTML = '<option value="">-- 未登录，点「一键登录」后自动加载 --</option>';
+      return;
+    }
+    let items = data.items || [];
+    if (!items.length) {
+      // 上月暂无活动 → 回退展示全部月份
+      resp = await fetch("/api/activities");
+      data = await resp.json();
+      items = data.items || [];
+    }
+    if (!items.length) {
+      sel.innerHTML = `<option value="">-- 上月(${prevMonthStr()})暂无活动 --</option>`;
+      return;
+    }
+    const groups = {};
+    activityMap = {};
+    for (const it of items) {
+      const g = it.name || "其他";
+      (groups[g] = groups[g] || []).push(it);
+      if (it.accrualId) activityMap[String(it.accrualId)] = { month: it.month, period: "计提", name: it.name };
+      if (it.actualId) activityMap[String(it.actualId)] = { month: it.month, period: "实发", name: it.name };
+    }
+    let html = '<option value="">-- 请选择成本活动 --</option>';
+    for (const g of Object.keys(groups).sort()) {
+      html += `<optgroup label="${g}">`;
+      for (const it of groups[g]) {
+        if (it.accrualId) html += `<option value="${it.accrualId}">计提期 · ${it.month}（ID ${it.accrualId}${it.accrualStatus ? " · " + it.accrualStatus : ""}）</option>`;
+        if (it.actualId) html += `<option value="${it.actualId}">实发期 · ${it.month}（ID ${it.actualId}${it.actualStatus ? " · " + it.actualStatus : ""}）</option>`;
+      }
+      html += "</optgroup>";
+    }
+    sel.innerHTML = html;
+    // 高亮当前配置里的活动ID，并自动筛选/下载对应模板
+    const cur = document.getElementById("cfgActivityId").value.trim();
+    if (cur && Array.from(sel.options).some(o => String(o.value) === String(cur))) {
+      sel.value = cur;
+      const info = activityMap[String(cur)];
+      if (info) {
+        currentActivityMonth = info.month || "";
+        currentActivityInfo = Object.assign({ id: String(cur) }, info);
+        await refreshTemplateSelect();
+        if (!currentTemplate) {
+          // 尚无匹配模板 → 自动下载（下载后自动选中并生成预览）
+          await downloadForActivity(String(cur));
+        }
+      }
+    }
+  } catch(e) {
+    sel.innerHTML = '<option value="">-- 加载失败，点「刷新活动」重试 --</option>';
+  }
+}
+
+// 按当前活动 + 成本对象 + 浮动类型从 HRMS 下载模板
+async function downloadForActivity(id) {
+  const co = currentCostObject;
+  try {
+    const resp = await fetch("/api/download-template", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ activityDetailId: id, costObject: co, floatType: currentFloatType }),
+    });
+    const data = await resp.json();
+    if (data.success) {
+      showToast(`已自动下载模板：${data.filename}`, "success");
+      document.getElementById("statusInfo").textContent =
+        `⬇ 已同步模板 ${data.filename} · 月份 ${currentActivityMonth || "?"}`;
+      await refreshTemplateSelect(data.filename);  // 选中后自动识别并生成预览
+    } else {
+      showToast("模板下载失败: " + (data.error || "未知错误"), "error");
+    }
+  } catch(e) {
+    showToast("下载请求失败: " + e.message, "error");
+  }
+}
+
+async function onActivitySelectChange() {
+  const id = document.getElementById("activitySelect").value;
+  if (!id) return;
+  // 同步到配置的活动ID字段（导入时使用）
+  document.getElementById("cfgActivityId").value = id;
+  const info = activityMap[String(id)] || {};
+  currentActivityMonth = info.month || "";
+  currentActivityInfo = Object.assign({ id: String(id) }, info);
+  await saveConfigSilent();
+  showToast("已选活动，正在自动下载对应系统模板...", "info");
+  await downloadForActivity(id);
+}
+
+// 切换成本对象：同步配置，重新下载对应模板
+async function onCostObjectChange() {
+  currentCostObject = document.getElementById("costObjectSelect").value;
+  document.getElementById("cfgCostObject").value = currentCostObject;
+  await saveConfigSilent();
+  const id = document.getElementById("activitySelect").value;
+  if (id) {
+    showToast("已切换成本对象，正在重新下载对应模板...", "info");
+    await downloadForActivity(id);
+  }
+}
+
+// 切换浮动类型：同步配置，重新下载对应模板（如 特殊场景 → 线下计算）
+async function onFloatTypeChange() {
+  currentFloatType = document.getElementById("floatTypeSelect").value;
+  document.getElementById("cfgFloatType").value = currentFloatType;
+  await saveConfigSilent();
+  const id = document.getElementById("activitySelect").value;
+  if (id) {
+    showToast(`已切换浮动类型（${FT_LABELS[currentFloatType] || currentFloatType}），正在重新下载对应模板...`, "info");
+    await downloadForActivity(id);
+  }
+}
+
+// 模板下拉框：按成本对象分组展示（员工成本明细/组织成本），并按所选活动类型+月份筛选
+async function refreshTemplateSelect(preferred) {
+  try {
+    const resp = await fetch("/api/templates");
+    let list = await resp.json();
+    const info = currentActivityInfo;
+    if (info && info.name && info.period) {
+      const mKey = (info.month || "").replace("/", "");
+      list = list.filter(t =>
+        t.name.startsWith(info.name + "_") &&
+        t.name.includes("_" + info.period + "_") &&
+        (!mKey || (t.month || "") === mKey)
+      );
+    }
+    const sel = document.getElementById("templateSelect");
+    const prevVal = sel.value;  // 用户当前已选中的模板（可能手动选过，刷新时需保留）
+    const groupOrder = ["员工成本明细", "组织成本", "未区分"];
+    const groups = {};
+    for (const t of list) {
+      const g = t.co_group || "未区分";
+      (groups[g] = groups[g] || []).push(t);
+    }
+    let html = "";
+    for (const g of groupOrder) {
+      if (!groups[g] || !groups[g].length) continue;
+      html += `<optgroup label="🎯 ${g}">`;
+      for (const t of groups[g]) {
+        html += `<option value="${t.name}">${t.display || t.name}（${t.columns}列）</option>`;
+      }
+      html += "</optgroup>";
+    }
+    if (!html) {
+      sel.innerHTML = '<option value="">-- 无匹配模板 --</option>';
+      currentTemplate = "";
+      return;
+    }
+    sel.innerHTML = html;
+    // 优先 preferred（刚下载的）；其次保留用户手动选择；最后按当前成本对象自动选
+    let target = "";
+    if (preferred && Array.from(sel.options).some(o => o.value === preferred)) {
+      target = preferred;
+    } else if (prevVal && Array.from(sel.options).some(o => o.value === prevVal)) {
+      target = prevVal;  // 保留用户已选模板，不被后台刷新覆盖
+    } else {
+      const coLabel = CO_LABELS[currentCostObject] || "";
+      const coOpts = Array.from(sel.options).filter(o => {
+        const grp = o.parentElement;
+        return coLabel && grp && grp.label && grp.label.includes(coLabel);
+      });
+      target = coOpts.length ? coOpts[coOpts.length - 1].value
+                             : sel.options[sel.options.length - 1].value;
+    }
+    sel.value = target;
+    if (target !== prevVal) onTemplateChange();
+  } catch(e) {}
+}
+
+async function saveConfig() {
+  let headers = {};
+  let extraFields = {};
+  try {
+    const h = document.getElementById("cfgHeaders").value.trim();
+    if (h) headers = JSON.parse(h);
+    const e = document.getElementById("cfgExtraFields").value.trim();
+    if (e) extraFields = JSON.parse(e);
+  } catch(e) {
+    showToast("JSON 格式错误: " + e.message, "error");
+    return;
+  }
+
+  const cfg = {
+    import_api_url: document.getElementById("cfgUrl").value.trim(),
+    import_api_method: document.getElementById("cfgMethod").value,
+    import_api_field_name: document.getElementById("cfgFieldName").value.trim() || "file",
+    import_api_cookie: document.getElementById("cfgCookie").value.trim(),
+    sso_username: document.getElementById("cfgSsoUser").value.trim(),
+    sso_password: document.getElementById("cfgSsoPwd").value,
+    import_api_headers: headers,
+    import_api_extra_fields: extraFields,
+    import_activity_id: document.getElementById("cfgActivityId").value.trim(),
+    import_cost_object: document.getElementById("cfgCostObject").value,
+    import_float_type: document.getElementById("cfgFloatType").value,
+    import_include_data: document.getElementById("cfgIncludeData").value,
+    pay_password: document.getElementById("cfgPayPwd").value,
+  };
+
+  try {
+    await fetch("/api/config", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(cfg),
+    });
+    closeConfig();
+    loadConfig();
+    showToast("配置已保存 ✅", "success");
+  } catch(e) {
+    showToast("保存失败: " + e.message, "error");
+  }
+}
+
+async function testConnection() {
+  const btn = document.getElementById("btnTestConn");
+  const resultDiv = document.getElementById("testResult");
+  btn.disabled = true;
+  btn.textContent = "⏳ 发送测试请求...";
+  resultDiv.style.display = "block";
+  resultDiv.innerHTML = '<span style="color:#888">正在发送 POST 请求（含 Cookie）...</span>';
+
+  // 先保存当前配置
+  await saveConfigSilent();
+
+  try {
+    const resp = await fetch("/api/test-connection", { method: "POST" });
+    const data = await resp.json();
+
+    if (data.success) {
+      const code = data.status_code;
+      let html = '';
+      if (data.is_auth_error) {
+        html = `<span style="color:#e74c3c">❌ 认证失败 (HTTP ${code}) — Cookie 无效或已过期</span>`;
+      } else if (data.is_redirect_login) {
+        html = `<span style="color:#e74c3c">❌ 被重定向到登录页 (HTTP ${code}) — Cookie 无效</span>`;
+      } else if (String(data.biz_code) === "0" || String(data.biz_code) === "200") {
+        html = `<span style="color:#0d9e6c">✅ 接口连通且业务通过 (HTTP ${code}, biz_code=${data.biz_code})${data.biz_message ? "：" + escapeHtml(data.biz_message) : ""}</span>`;
+      } else if (data.biz_code != null) {
+        html = `<span style="color:#e67e22">⚠️ 接口可达，但业务返回 code=${data.biz_code}：${escapeHtml(data.biz_message || "")}（HTTP ${code}）</span>`;
+      } else if (code >= 200 && code < 300) {
+        html = `<span style="color:#0d9e6c">✅ 连接正常 (HTTP ${code}) — 接口可达，可以导入</span>`;
+      } else if (code >= 400 && code < 500) {
+        html = `<span style="color:#e67e22">⚠️ 客户端错误 HTTP ${code} — 接口可达但请求被拒（可能是文件格式校验）</span>`;
+      } else {
+        html = `<span style="color:#e67e22">⚠️ 接口返回 HTTP ${code}</span>`;
+      }
+      // 工资条安全验证状态
+      if (data.pay_gate) {
+        const pg = data.pay_gate;
+        if (["already_unlocked","verified","set_and_unlocked"].includes(pg.status)) {
+          html += `<br><span style="color:#0d9e6c">🔓 工资条安全验证：已解锁（${pg.status}）</span>`;
+        } else {
+          html += `<br><span style="color:#e74c3c">🔒 工资条安全验证：未解锁（${pg.status || "未知"}）${pg.message ? " — " + escapeHtml(pg.message) : ""}</span>`;
+        }
+      }
+      // Show response preview
+      if (data.response_preview) {
+        html += `<br><pre style="font-size:11px;color:#666;margin-top:6px;max-height:120px;overflow:auto;background:#f7f7f7;padding:6px;border-radius:4px">${escapeHtml(data.response_preview)}</pre>`;
+      }
+      resultDiv.innerHTML = html;
+    } else {
+      resultDiv.innerHTML = `<span style="color:#e74c3c">❌ ${escapeHtml(data.error)}</span>`;
+    }
+  } catch(e) {
+    resultDiv.innerHTML = `<span style="color:#e74c3c">❌ ${escapeHtml(e.message)}</span>`;
+  }
+  btn.disabled = false;
+  btn.textContent = "🔍 测试连接";
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+async function saveConfigSilent() {
+  let headers = {};
+  let extraFields = {};
+  try {
+    const h = document.getElementById("cfgHeaders").value.trim();
+    if (h) headers = JSON.parse(h);
+    const e = document.getElementById("cfgExtraFields").value.trim();
+    if (e) extraFields = JSON.parse(e);
+  } catch(e) { return; }
+
+  const cfg = {
+    import_api_url: document.getElementById("cfgUrl").value.trim(),
+    import_api_method: document.getElementById("cfgMethod").value,
+    import_api_field_name: document.getElementById("cfgFieldName").value.trim() || "file",
+    import_api_cookie: document.getElementById("cfgCookie").value.trim(),
+    sso_username: document.getElementById("cfgSsoUser").value.trim(),
+    sso_password: document.getElementById("cfgSsoPwd").value,
+    import_api_headers: headers,
+    import_api_extra_fields: extraFields,
+    import_activity_id: document.getElementById("cfgActivityId").value.trim(),
+    import_cost_object: document.getElementById("cfgCostObject").value,
+    import_float_type: document.getElementById("cfgFloatType").value,
+    import_include_data: document.getElementById("cfgIncludeData").value,
+    pay_password: document.getElementById("cfgPayPwd").value,
+  };
+  try { await fetch("/api/config", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(cfg) }); } catch(e) {}
+}
+
+// ============================================================
+// 自动登录
+// ============================================================
+async function autoLogin() {
+  const btn = document.getElementById("btnAutoLogin");
+  btn.disabled = true;
+  btn.textContent = "⏳ 登录中...";
+  showToast("正在 SSO 自动登录...", "info");
+
+  // 先用配置弹窗里的账号密码保存（未打开弹窗时值来自已保存配置）
+  await saveConfigSilent();
+
+  try {
+    const resp = await fetch("/api/auto-login", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({}),
+    });
+    const data = await resp.json();
+
+    if (data.success) {
+      const pg = data.pay_gate || {};
+      const pgTxt = pg && pg.status
+        ? `（工资条验证: ${["already_unlocked","verified","set_and_unlocked"].includes(pg.status) ? "已解锁🔓" : pg.status}）`
+        : "";
+      showToast(`登录成功 ✅ ztToken: ${data.ztoken_preview}${pgTxt}`, "success");
+      document.getElementById("statusInfo").textContent = `🔑 ${new Date().toLocaleTimeString()} 自动登录成功${pgTxt}`;
+      refreshAuthStatus();
+      loadConfig(); // 刷新 Cookie 显示
+    } else {
+      showToast("登录失败: " + data.error, "error");
+      document.getElementById("statusInfo").textContent = `❌ 登录失败: ${data.error}`;
+    }
+  } catch(e) {
+    showToast("登录请求失败: " + e.message, "error");
+  }
+  btn.disabled = false;
+  btn.textContent = "🔑 一键登录";
+}
+
+// ============================================================
+// 同步系统模板
+// ============================================================
+async function downloadSystemTemplate() {
+  await saveConfigSilent();
+  showToast("正在从系统下载最新模板...", "info");
+  try {
+    const resp = await fetch("/api/download-template", { method: "POST" });
+    const data = await resp.json();
+    if (data.success) {
+      showToast(`模板已保存: ${data.filename}`, "success");
+      document.getElementById("statusInfo").textContent = `⬇ 已同步系统模板 ${data.filename}`;
+      setTimeout(() => location.reload(), 1500);
+    } else {
+      showToast("下载失败: " + (data.error || "未知错误"), "error");
+    }
+  } catch(e) {
+    showToast("下载请求失败: " + e.message, "error");
+  }
+}
+
+// ============================================================
+// Toast
+// ============================================================
+function showToast(msg, type) {
+  const toast = document.createElement("div");
+  toast.className = `toast toast-${type}`;
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
+// ============================================================
+// 键盘快捷键
+// ============================================================
+document.addEventListener("keydown", function(e) {
+  if (e.ctrlKey && e.key === "Enter") {
+    e.preventDefault();
+    generatePreview();
+  }
+});
+
+// 启动
+init();
+</script>
+</body>
+</html>

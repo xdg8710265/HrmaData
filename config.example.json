@@ -1,0 +1,15 @@
+{
+  "import_api_url": "https://uat-hrms.eminxing.com/api/dw/costActivity/detail/float/import",
+  "import_api_method": "POST",
+  "import_api_headers": {},
+  "import_api_field_name": "file",
+  "import_api_extra_fields": {},
+  "import_api_cookie": "",
+  "import_activity_id": "",
+  "import_cost_object": "CO01",
+  "import_float_type": "6",
+  "import_include_data": "",
+  "pay_password": "",
+  "sso_username": "",
+  "sso_password": ""
+}
